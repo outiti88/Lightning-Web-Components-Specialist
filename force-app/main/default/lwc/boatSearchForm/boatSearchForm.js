@@ -1,40 +1,38 @@
-import { LightningElement, wire } from 'lwc'; 
-import  getBoatTypes  from "@salesforce/apex/BoatDataService.getBoatTypes"
-// imports
-// import getBoatTypes from the BoatDataService => getBoatTypes method';
+import { LightningElement, track, wire } from 'lwc';
+import getBoatTypes from '@salesforce/apex/BoatDataService.getBoatTypes';
+
 export default class BoatSearchForm extends LightningElement {
+    //We defined the variables to use on the picklist 
     selectedBoatTypeId = '';
-    
-    // Private
     error = undefined;
-    
-    searchOptions;
-    
-    // Wire a custom Apex method
+    @track searchOptions;
+
+    //Obtaining Search opctions calling getBoatTypes Apex
     @wire(getBoatTypes)
-      boatTypes({ error, data }) {
-      if (data) {
-        this.searchOptions = data.map(type => {
-          return {label : type.Name, value : type.Id}
+    boatTypes({ error, data }) {
+        //if apex return a values list
+        if (data) {
+            //for every value on data, we are adding it into a new array
+          this.searchOptions = data.map(type => {
+            return { label:type.Name, value:type.Id };
         });
-        this.searchOptions.unshift({ label: 'All Types', value: '' });
-      } else if (error) {
-        this.searchOptions = undefined;
-        this.error = error;
-      }
-    }
-    
-    // Fires event that the search option has changed.
-    // passes boatTypeId (value of this.selectedBoatTypeId) in the detail
-    handleSearchOptionChange(event) {
-      // Create the const searchEvent
-      this.selectedBoatTypeId = event.target.value;
-      const searchEvent = new CustomEvent('search',{
-        detail : {
-            boatTypeId : this.selectedBoatTypeId
+          //and we unshift a the All Types vaulue, at the beginning of the list
+          this.searchOptions.unshift({ label: 'All Types', value: '' });
         }
-      })
-      // searchEvent must be the new custom event search
-      this.dispatchEvent(searchEvent);
+        //If error found, we save it 
+        else if (error) {
+          this.searchOptions = undefined;
+          this.error = error;
+        }
+    }    
+
+    handleSearchOptionChange(event) {
+        //recieving the new id value
+        this.selectedBoatTypeId = event.target.value;
+        //We create a new event, we call it search, and we pass the boatTypeId on its detail
+        const searchEvent = new CustomEvent('search', { detail: {
+          boatTypeId: this.selectedBoatTypeId
+        }});
+        this.dispatchEvent(searchEvent);
     }
-  }
+}
